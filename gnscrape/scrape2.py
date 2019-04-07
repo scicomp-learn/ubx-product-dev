@@ -1,20 +1,20 @@
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import urllib3, sys, certifi, re, pandas as pd, os
+from selenium.webdriver.chrome.options import Options
+import urllib3, sys, certifi, re, pandas as pd, os, time
 
 http = urllib3.PoolManager(
     cert_reqs='CERT_REQUIRED',
     ca_certs=certifi.where()
 )
-url = 'https://m.gadgetsnow.com/mobile-phones'
+url = 'https://www.gadgetsnow.com/mobile-phones'
 
 # Create new Firefox session
-options = webdriver.ChromeOptions()
-options.add_argument('--ignore-certificate-errors')
-options.add_argument('--test-type')
-options.binary_location = "D:/documents/feedloop/learn-py-02/chromedriver.exe"
-driver = webdriver.Chrome(chrome_options=options)
+chrome_options = Options()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--disable-notifications")
+driver = webdriver.Chrome(options=chrome_options, executable_path='D:/documents/chromedriver.exe')
 driver.implicitly_wait(30)
 
 def connectsoup(url):
@@ -32,30 +32,52 @@ def preparesoup(url):
     except AssertionError as error:
         print(error)
 
-def detectelement(url,xpath):
+def checkelement(xpath):
+    print('Checking element : '+xpath)
+    target = driver.find_elements_by_xpath(xpath)
+    if len(target) >= 1:
+        isExist = True
+        print('Found')
+    else:
+        isExist = False
+        print('Not Found')
+    return isExist, target
+
+def checkseemore():
+    loadingExist, loading = checkelement('//*[@id="gadget_loading"]')
+    if loadingExist :
+        print('Still loading... Wait for 3 sec')
+        time.sleep(3)
+        checkseemore()
+    loadbtnExist, loadbtn = checkelement('//*[@id="load_more"]')
+    if loadbtnExist :
+        print('Clicking')
+        # loadbtn[0].click()
+        driver.execute_script("arguments[0].click();", loadbtn[0])
+        print('Element clicked')
+        checkseemore()
+    else :
+        print('Click stopped')
+
+def openselenium(url):
     driver.get(url)
-    try:
-        elem = driver.find_element_by_xpath(xpath)
-        elem.click()
-    except:
-        print("Element is unable to find")
-        pass
+    print('Page opened...')
+    checkseemore()
 
 def scrapeGadName(url,array_sub):
     # Generate several request based on array of subdirectory
     result =  []
     for sub in array_sub:
         page = url +'/'+ sub
-        soup = preparesoup(page)
         try:
-            gadName = soup.find_all(attrs={"class":"gadName"})
-            if len(gadName) < 1: 
-                print(page+' has no content')
-            else:
-                for name in gadName: result.append(name.getText())
-            detectelement(page,'//*[@id="c_wdt_gadget_filters_1"]/a')
-        except:
-            pass
+            openselenium(page)
+            name = driver.find_elements_by_class_name('gadName')
+            for i in name:
+                result.append(i.text)
+        except Exception as e:
+            print(e)
+        driver.quit()
     return result
 
-gadgetName = scrapeGadName(url,['Samsung','Nokia','Apple'])
+gadgetName = scrapeGadName(url,['filters/brand=Inco%7CIvvo%7CK-Tel'])
+print(gadgetName)
