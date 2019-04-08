@@ -67,6 +67,7 @@ def openselenium(url):
 def scrapeGadName(url,array_sub):
     # Generate several request based on array of subdirectory
     result =  []
+    resultName = pd.Series()
     for sub in array_sub:
         page = url +'/'+ sub
         try:
@@ -74,10 +75,25 @@ def scrapeGadName(url,array_sub):
             name = driver.find_elements_by_class_name('gadName')
             for i in name:
                 result.append(i.text)
+            if resultName.size < 1:
+                resultName = pd.Series(result)
         except Exception as e:
             print(e)
         driver.quit()
-    return result
+    return resultName
+
+def gn_to_csv(filename,data):
+    # filename = os.path.join('data/gadgetsnow/raw', 'gn_raw_phone.csv')
+    print(f'- Saving data to {filename}..')
+    try:
+        data.transpose().to_csv(
+            filename, index=False
+        )
+    except Exception as error:
+        print(f'Error while saving: {error}')
+    else:
+        print(f'- [DONE] Saved in {filename}')
 
 gadgetName = scrapeGadName(url,['filters/brand=Inco%7CIvvo%7CK-Tel'])
+gn_to_csv('gn_raw_phone.csv',gadgetName)
 print(gadgetName)
