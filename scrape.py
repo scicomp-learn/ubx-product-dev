@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import HTTPError
 
-import ubmerce.scrabl as bl
-import ubtools.ubtools as ubtools
+from boxing.boxsite import bl
+from boxing.boxfunc import bl_to_csv
 
 
 BL_SOURCE = [
@@ -63,4 +63,4 @@ if __name__ == "__main__":
     }
     print('-- Start scraping --')
     data = bl_data(url=BL_SOURCE[0], param=PARAM)
-    ubtools.bl_to_csv(data)
+    bl_to_csv(data)
