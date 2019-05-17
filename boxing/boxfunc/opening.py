@@ -9,7 +9,7 @@ from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 
 
-def get_html(url, param=None, time_out=None):
+def get_html(url, param=None, time_out=3):
     """Attempts to get the html at `url` via HTTP GET Requests.
 
     Parameters

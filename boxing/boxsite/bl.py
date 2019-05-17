@@ -1,6 +1,6 @@
 """Module to scrape bukalapak webpage"""
 
-from ubtools.ubtools import get_html
+from boxing.boxfunc import get_html
 
 import pandas as pd
 # import requests
